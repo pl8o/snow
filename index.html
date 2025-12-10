@@ -1,66 +1,93 @@
+<!DOCTYPE html>
 <html>
-    <head> <title>SNOW</title></head>
+<head>
+<title>Falling Balls</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: black;
+    }
+    canvas {
+        display: block;
+    }
+</style>
+</head>
 <body>
-<canvas width="3000dvw" height="3000dvh" id="canvas"></canvas>
-<script>
 
-var canvas = document.getElementById('canvas');
-var particles = [];
-var tick = 0;
-function loop() {
-    createParticles();
-    updateParticles();
-    killParticles();
-    drawParticles();
+<canvas id="canvas"></canvas>
+
+<script>
+// -------------------- SETUP --------------------
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+// -------------------- PARTICLES --------------------
+let particles = [];
+let tick = 0;
+
+// doubled ball sizes
+const MIN_RADIUS = 10;
+const MAX_RADIUS = 20;
+
+// multi-color palette
+const COLORS = ["blue", "yellow", "orange", "red", "purple", "green"];
 
 function createParticles() {
-    //check on every 10th tick check
-    if(tick % 10 == 0) {
-        if(particles.length < 100) {
+    if (tick % 4 === 0) { // increased rate so it's a continuous flow
+        if (particles.length < 200) {
             particles.push({
-                    x: Math.random()*canvas.width,
-                    y: 0,
-                    speed: 2+Math.random()*3, //between 2 and 5
-                    radius: 5+Math.random()*5, //between 5 and 10
-                    color: "red",
+                x: Math.random() * canvas.width,
+                y: -20, // start above screen
+                speed: 2 + Math.random() * 3,
+                radius: MIN_RADIUS + Math.random() * (MAX_RADIUS - MIN_RADIUS),
+                color: COLORS[Math.floor(Math.random() * COLORS.length)]
             });
         }
     }
 }
 
 function updateParticles() {
-    for(var i in particles) {
-        var part = particles[i];
-        part.y += part.speed;
-    }
-}
-function killParticles() {
-    for(var i in particles) {
-        var part = particles[i];
-        if(part.y > canvas.height) {
-            part.y = 0;
+    for (let p of particles) {
+        p.y += p.speed;
+        if (p.y - p.radius > canvas.height) {
+            // reset to top when leaving screen
+            p.y = -p.radius;
+            p.x = Math.random() * canvas.width;
         }
     }
 }
 
 function drawParticles() {
-    var c = canvas.getContext('2d');
-    c.fillStyle = "black";
-    c.fillRect(0,0,canvas.width,canvas.height);
-    for(var i in particles) {
-        var part = particles[i];
-        c.beginPath();
-        c.arc(part.x,part.y, part.radius, 0, Math.PI*2);
-        c.closePath();
-        c.fillStyle = part.color;
-        c.fill();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
     }
 }
 
-setInterval(loop,30);
+// -------------------- ANIMATION LOOP --------------------
+function loop() {
+    tick++;
+    createParticles();
+    updateParticles();
+    drawParticles();
+    requestAnimationFrame(loop);
+}
 
+loop();
 </script>
+
 </body>
-<!-- view-source:http://projects.joshy.org/presentations/HTML/CanvasDeepDive/snow_sim.html -->
 </html>
+
